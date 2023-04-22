@@ -1,4 +1,5 @@
 import { providers, Wallet } from 'ethers'
+import { getZeroDevSigner, ZeroDevSigner } from '@zerodevapp/sdk'
 
 /**
  * Types
@@ -11,27 +12,41 @@ interface IInitArgs {
  * Library
  */
 export default class EIP155Lib {
-  wallet: Wallet
+  owner: Wallet
+  wallet: ZeroDevSigner
 
-  constructor(wallet: Wallet) {
+  constructor(owner: Wallet, wallet: ZeroDevSigner) {
+    this.owner = owner
     this.wallet = wallet
   }
 
-  static init({ mnemonic }: IInitArgs) {
-    const wallet = mnemonic ? Wallet.fromMnemonic(mnemonic) : Wallet.createRandom()
+  static async init({ mnemonic }: IInitArgs) {
+    console.log(process.env)
 
-    return new EIP155Lib(wallet)
+    // if (!process.env.NEXT_ZERODEV_PROJECT_ID) {
+    //   throw new Error('NEXT_ZERODEV_PROJECT_ID env var not set')
+    // }
+
+    const owner = mnemonic ? Wallet.fromMnemonic(mnemonic) : Wallet.createRandom()
+    const signer = await getZeroDevSigner({
+      // projectId: process.env.NEXT_ZERODEV_PROJECT_ID,
+      projectId: 'c63ec41b-a824-4241-b880-747861294faa',
+      owner: owner,
+    })
+
+    return new EIP155Lib(owner, signer)
   }
 
   getMnemonic() {
-    return this.wallet.mnemonic.phrase
+    return this.owner.mnemonic.phrase
   }
 
   getAddress() {
-    return this.wallet.address
+    return this.wallet.getAddress()
   }
 
   signMessage(message: string) {
+    console.log('signMessage', message)
     return this.wallet.signMessage(message)
   }
 

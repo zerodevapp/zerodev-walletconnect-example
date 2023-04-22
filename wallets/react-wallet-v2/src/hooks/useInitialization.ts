@@ -19,7 +19,7 @@ export default function useInitialization() {
 
   const onInitialize = useCallback(async () => {
     try {
-      const { eip155Addresses } = createOrRestoreEIP155Wallet()
+      const { eip155Addresses } = await createOrRestoreEIP155Wallet()
       const { cosmosAddresses } = await createOrRestoreCosmosWallet()
       const { solanaAddresses } = await createOrRestoreSolanaWallet()
       const { polkadotAddresses } = await createOrRestorePolkadotWallet()

@@ -13,6 +13,7 @@ import { providers } from 'ethers'
 export async function approveEIP155Request(
   requestEvent: SignClientTypes.EventArguments['session_request']
 ) {
+  console.log('approveEIP155Request', requestEvent)
   const { params, id } = requestEvent
   const { chainId, request } = params
   const wallet = eip155Wallets[getWalletAddressFromParams(eip155Addresses, params)]
@@ -22,7 +23,9 @@ export async function approveEIP155Request(
     case EIP155_SIGNING_METHODS.ETH_SIGN:
       try {
         const message = getSignParamsMessage(request.params)
+        console.log('message', message)
         const signedMessage = await wallet.signMessage(message)
+        console.log('signedMessage', signedMessage)
         return formatJsonRpcResult(id, signedMessage)
       } catch (error: any) {
         console.error(error)
