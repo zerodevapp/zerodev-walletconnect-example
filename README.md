@@ -1,40 +1,29 @@
-# WalletConnect v2 Examples
+# ZeroDev Wallet Connect Example
 
-Catalogue of various wallet and dapp examples implementing WalletConnect's **SDKs and APIs**. Each example contains its own README with further instructions and explanations.
+This repo demonstrates a wallet powered by ZeroDev that can connect to DApps like OpenSea through WalletConnect.
 
-### Web3Wallet SDK
+To run the example:
 
-**Wallets:**
+```
+cd ./wallets/react-wallet-v2
+yarn install
+```
 
-- [React Web3Wallet SDK](https://github.com/WalletConnect/web-examples/tree/main/wallets/react-web3wallet) ([Demo](https://react-web3wallet.vercel.app))
+Then create a `.env.local` file with:
 
-### Sign API
+```
+NEXT_PUBLIC_PROJECT_ID=...
+NEXT_PUBLIC_RELAY_URL=wss://relay.walletconnect.com
+```
 
-**Wallets:**
+Make sure to set `NEXT_PUBLIC_PROJECT_ID` to your own WalletConnect project ID.
 
-- [React Wallet (Sign v1 + v2)](https://github.com/WalletConnect/web-examples/tree/main/wallets/react-wallet-v2) ([Demo](https://react-wallet.walletconnect.com/))
+Then set your ZeroDev project ID [here](https://github.com/zerodevapp/zerodev-walletconnect-example/blob/2d5e03b623f356e223070b7b9f739efcaab87f5f/wallets/react-wallet-v2/src/lib/EIP155Lib.ts#L33).  Note that this should be an Ethereum mainnet project.
 
-**dApps:**
+Then run the wallet locally:
 
-- [React dApp (with standalone client) - v2](https://github.com/WalletConnect/web-examples/tree/main/dapps/react-dapp-v2) ([Demo](https://react-app.walletconnect.com/))
-- [React dApp (with EthereumProvider + Ethers.js) - v2](https://github.com/WalletConnect/web-examples/tree/main/dapps/react-dapp-v2-with-ethers) ([Demo](https://react-dapp-v2-with-ethers.vercel.app/))
-- [React dApp (with EthereumProvider + web3.js) - v2](https://github.com/WalletConnect/web-examples/tree/main/dapps/react-dapp-v2-with-web3js) ([Demo](https://react-dapp-v2-with-web3js.vercel.app/))
+```
+yarn run dev
+```
 
-### Auth API
-
-**Wallets:**
-
-- [React Auth
-  Wallet](https://github.com/WalletConnect/web-examples/tree/main/wallets/react-wallet-auth) ([Demo](https://react-auth-wallet.vercel.app))
-
-**dApps:**
-
-- [React Auth dApp](https://github.com/WalletConnect/web-examples/tree/main/dapps/react-dapp-auth) ([Demo](https://react-auth-dapp.walletconnect.com/))
-- [Vue Auth dApp](https://github.com/WalletConnect/web-examples/tree/main/dapps/vue-dapp-auth) ([Demo](https://vue-dapp-auth.vercel.app/))
-
-
-### Chat API
-
-**Wallets:**
-
-- [React Chat Wallet](https://github.com/WalletConnect/web-examples/tree/main/wallets/react-wallet-chat) ([Demo](https://react-wallet-chat.walletconnect.com/))
+Now you should be able to connect this wallet to DApps such as OpenSea.
