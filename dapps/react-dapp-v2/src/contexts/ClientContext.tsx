@@ -22,7 +22,10 @@ import {
   DEFAULT_RELAY_URL,
 } from "../constants";
 import { AccountBalances, apiGetAccountBalance } from "../helpers";
-import { getRequiredNamespaces } from "../helpers/namespaces";
+import {
+  getOptionalNamespaces,
+  getRequiredNamespaces,
+} from "../helpers/namespaces";
 import { getPublicKeysFromAccounts } from "../helpers/solana";
 
 /**
@@ -43,6 +46,7 @@ interface IContext {
   isFetchingBalances: boolean;
   setChains: any;
   setRelayerRegion: any;
+  origin: string;
 }
 
 /**
@@ -83,7 +87,7 @@ export function ClientContextProvider({
   const [relayerRegion, setRelayerRegion] = useState<string>(
     DEFAULT_RELAY_URL!
   );
-
+  const [origin, setOrigin] = useState<string>(getAppMetadata().url);
   const reset = () => {
     setSession(undefined);
     setBalances({});
@@ -100,6 +104,7 @@ export function ClientContextProvider({
           const [namespace, reference, address] = account.split(":");
           const chainId = `${namespace}:${reference}`;
           const assets = await apiGetAccountBalance(address, chainId);
+
           return { account, assets: [assets] };
         })
       );
@@ -127,6 +132,7 @@ export function ClientContextProvider({
       setChains(allNamespaceChains);
       setAccounts(allNamespaceAccounts);
       setSolanaPublicKeys(getPublicKeysFromAccounts(allNamespaceAccounts));
+
       await getAccountBalances(allNamespaceAccounts);
     },
     []
@@ -144,10 +150,16 @@ export function ClientContextProvider({
           "requiredNamespaces config for connect:",
           requiredNamespaces
         );
+        const optionalNamespaces = getOptionalNamespaces(chains);
+        console.log(
+          "optionalNamespaces config for connect:",
+          optionalNamespaces
+        );
 
         const { uri, approval } = await client.connect({
           pairingTopic: pairing?.topic,
           requiredNamespaces,
+          optionalNamespaces,
         });
 
         // Open QRCode modal if a URI was returned (i.e. we're not connecting an existing pairing).
@@ -254,35 +266,66 @@ export function ClientContextProvider({
     [session, onSessionConnected]
   );
 
+  const _logClientId = useCallback(async (_client: Client) => {
+    if (typeof _client === "undefined") {
+      throw new Error("WalletConnect is not initialized");
+    }
+    try {
+      const clientId = await _client.core.crypto.getClientId();
+      console.log("WalletConnect ClientID: ", clientId);
+      localStorage.setItem("WALLETCONNECT_CLIENT_ID", clientId);
+    } catch (error) {
+      console.error(
+        "Failed to set WalletConnect clientId in localStorage: ",
+        error
+      );
+    }
+  }, []);
+
   const createClient = useCallback(async () => {
     try {
       setIsInitializing(true);
-
+      const claimedOrigin =
+        localStorage.getItem("wallet_connect_dapp_origin") || origin;
       const _client = await Client.init({
         logger: DEFAULT_LOGGER,
         relayUrl: relayerRegion,
         projectId: DEFAULT_PROJECT_ID,
-        metadata: getAppMetadata() || DEFAULT_APP_METADATA,
+        metadata: {
+          ...(getAppMetadata() || DEFAULT_APP_METADATA),
+          url: claimedOrigin,
+          verifyUrl:
+            claimedOrigin === "unknown"
+              ? "http://non-existent-url"
+              : DEFAULT_APP_METADATA.verifyUrl, // simulates `UNKNOWN` verify context
+        },
       });
 
       setClient(_client);
+      setOrigin(_client.metadata.url);
       prevRelayerValue.current = relayerRegion;
       await _subscribeToEvents(_client);
       await _checkPersistedState(_client);
+      await _logClientId(_client);
     } catch (err) {
       throw err;
     } finally {
       setIsInitializing(false);
     }
-  }, [_checkPersistedState, _subscribeToEvents, relayerRegion]);
+  }, [
+    _checkPersistedState,
+    _subscribeToEvents,
+    _logClientId,
+    relayerRegion,
+    origin,
+  ]);
 
   useEffect(() => {
     if (!client) {
-      createClient()
-    }
-    else if (prevRelayerValue.current !== relayerRegion) {
-      client.core.relayer.restartTransport(relayerRegion)
-      prevRelayerValue.current = relayerRegion
+      createClient();
+    } else if (prevRelayerValue.current !== relayerRegion) {
+      client.core.relayer.restartTransport(relayerRegion);
+      prevRelayerValue.current = relayerRegion;
     }
   }, [createClient, relayerRegion, client]);
 
@@ -302,6 +345,7 @@ export function ClientContextProvider({
       disconnect,
       setChains,
       setRelayerRegion,
+      origin,
     }),
     [
       pairings,
@@ -318,6 +362,7 @@ export function ClientContextProvider({
       disconnect,
       setChains,
       setRelayerRegion,
+      origin,
     ]
   );
 

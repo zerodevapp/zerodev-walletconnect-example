@@ -1,10 +1,15 @@
 import { COSMOS_MAINNET_CHAINS, TCosmosChain } from '@/data/COSMOSData'
 import { EIP155_CHAINS, TEIP155Chain } from '@/data/EIP155Data'
+import { MULTIVERSX_CHAINS, TMultiversxChain } from '@/data/MultiversxData'
 import { NEAR_TEST_CHAINS, TNearChain } from '@/data/NEARData'
+import { POLKADOT_CHAINS, TPolkadotChain } from '@/data/PolkadotData'
 import { SOLANA_CHAINS, TSolanaChain } from '@/data/SolanaData'
-import { ELROND_CHAINS, TElrondChain } from '@/data/ElrondData'
+import { TEZOS_CHAINS, TTezosChain } from '@/data/TezosData'
 import { TRON_CHAINS, TTronChain } from '@/data/TronData'
+import { KADENA_CHAINS, TKadenaChain } from '@/data/KadenaData'
+
 import { utils } from 'ethers'
+import { Verify } from '@walletconnect/types'
 
 /**
  * Truncates string (in the middle) via given lenght value
@@ -112,10 +117,17 @@ export function isNearChain(chain: string) {
 }
 
 /**
- * Check if chain is part of ELROND standard
+ * Check if chain is part of KADENA standard
  */
-export function isElrondChain(chain: string) {
-  return chain.includes('elrond')
+export function isKadenaChain(chain: string) {
+  return chain.includes('kadena')
+}
+
+/**
+ * Check if chain is part of MULTIVERSX standard
+ */
+export function isMultiversxChain(chain: string) {
+  return chain.includes('mvx')
 }
 
 /**
@@ -137,12 +149,27 @@ export function isTezosChain(chain: string) {
  */
 export function formatChainName(chainId: string) {
   return (
-    EIP155_CHAINS[chainId as TEIP155Chain]?.name ??
     COSMOS_MAINNET_CHAINS[chainId as TCosmosChain]?.name ??
-    SOLANA_CHAINS[chainId as TSolanaChain]?.name ??
+    EIP155_CHAINS[chainId as TEIP155Chain]?.name ??
+    MULTIVERSX_CHAINS[chainId as TMultiversxChain]?.name ??
     NEAR_TEST_CHAINS[chainId as TNearChain]?.name ??
-    ELROND_CHAINS[chainId as TElrondChain]?.name ??
+    POLKADOT_CHAINS[chainId as TPolkadotChain]?.name ??
+    SOLANA_CHAINS[chainId as TSolanaChain]?.name ??
     TRON_CHAINS[chainId as TTronChain]?.name ??
+    TEZOS_CHAINS[chainId as TTezosChain]?.name ??
+    KADENA_CHAINS[chainId as TKadenaChain]?.name ??
     chainId
   )
+}
+
+export function getVerifyStatus(context?: Verify.Context) {
+  if (!context) return ''
+  switch (context.verified.validation) {
+    case 'VALID':
+      return '✅ Verified'
+    case 'INVALID':
+      return '❌ Origin does not match'
+    case 'UNKNOWN':
+      return '❓ Unknown'
+  }
 }

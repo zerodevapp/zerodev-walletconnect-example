@@ -2,15 +2,18 @@ import { COSMOS_SIGNING_METHODS } from '@/data/COSMOSData'
 import { EIP155_SIGNING_METHODS } from '@/data/EIP155Data'
 import { SOLANA_SIGNING_METHODS } from '@/data/SolanaData'
 import { POLKADOT_SIGNING_METHODS } from '@/data/PolkadotData'
-import { ELROND_SIGNING_METHODS } from '@/data/ElrondData'
+import { MULTIVERSX_SIGNING_METHODS } from '@/data/MultiversxData'
 import { TRON_SIGNING_METHODS } from '@/data/TronData'
 import ModalStore from '@/store/ModalStore'
+import SettingsStore from '@/store/SettingsStore'
+import { useSnapshot } from 'valtio'
 import { signClient } from '@/utils/WalletConnectUtil'
 import { SignClientTypes } from '@walletconnect/types'
 import { useCallback, useEffect } from 'react'
 import { NEAR_SIGNING_METHODS } from '@/data/NEARData'
 import { approveNearRequest } from '@/utils/NearRequestHandlerUtil'
 import { TEZOS_SIGNING_METHODS } from '@/data/TezosData'
+import { KADENA_SIGNING_METHODS } from '@/data/KadenaData'
 
 export default function useWalletConnectEventsManager(initialized: boolean) {
   /******************************************************************************
@@ -18,6 +21,8 @@ export default function useWalletConnectEventsManager(initialized: boolean) {
    *****************************************************************************/
   const onSessionProposal = useCallback(
     (proposal: SignClientTypes.EventArguments['session_proposal']) => {
+      // set the verify context so it can be displayed in the projectInfoCard
+      SettingsStore.setCurrentRequestVerifyContext(proposal.verifyContext)
       ModalStore.open('SessionProposalModal', { proposal })
     },
     []
@@ -29,9 +34,11 @@ export default function useWalletConnectEventsManager(initialized: boolean) {
   const onSessionRequest = useCallback(
     async (requestEvent: SignClientTypes.EventArguments['session_request']) => {
       console.log('session_request', requestEvent)
-      const { topic, params } = requestEvent
+      const { topic, params, verifyContext } = requestEvent
       const { request } = params
       const requestSession = signClient.session.get(topic)
+      // set the verify context so it can be displayed in the projectInfoCard
+      SettingsStore.setCurrentRequestVerifyContext(verifyContext)
 
       switch (request.method) {
         case EIP155_SIGNING_METHODS.ETH_SIGN:
@@ -68,17 +75,19 @@ export default function useWalletConnectEventsManager(initialized: boolean) {
         case NEAR_SIGNING_METHODS.NEAR_VERIFY_OWNER:
           return ModalStore.open('SessionSignNearModal', { requestEvent, requestSession })
 
-        case ELROND_SIGNING_METHODS.ELROND_SIGN_MESSAGE:
-        case ELROND_SIGNING_METHODS.ELROND_SIGN_TRANSACTION:
-        case ELROND_SIGNING_METHODS.ELROND_SIGN_TRANSACTIONS:
-        case ELROND_SIGNING_METHODS.ELROND_SIGN_LOGIN_TOKEN:
-          return ModalStore.open('SessionSignElrondModal', { requestEvent, requestSession })
+        case MULTIVERSX_SIGNING_METHODS.MULTIVERSX_SIGN_MESSAGE:
+        case MULTIVERSX_SIGNING_METHODS.MULTIVERSX_SIGN_TRANSACTION:
+        case MULTIVERSX_SIGNING_METHODS.MULTIVERSX_SIGN_TRANSACTIONS:
+        case MULTIVERSX_SIGNING_METHODS.MULTIVERSX_SIGN_LOGIN_TOKEN:
+        case MULTIVERSX_SIGNING_METHODS.MULTIVERSX_SIGN_NATIVE_AUTH_TOKEN:
+          return ModalStore.open('SessionSignMultiversxModal', { requestEvent, requestSession })
 
         case NEAR_SIGNING_METHODS.NEAR_GET_ACCOUNTS:
           return signClient.respond({
             topic,
             response: await approveNearRequest(requestEvent)
           })
+
         case TRON_SIGNING_METHODS.TRON_SIGN_MESSAGE:
         case TRON_SIGNING_METHODS.TRON_SIGN_TRANSACTION:
           return ModalStore.open('SessionSignTronModal', { requestEvent, requestSession })
@@ -86,6 +95,10 @@ export default function useWalletConnectEventsManager(initialized: boolean) {
         case TEZOS_SIGNING_METHODS.TEZOS_SEND:
         case TEZOS_SIGNING_METHODS.TEZOS_SIGN:
           return ModalStore.open('SessionSignTezosModal', { requestEvent, requestSession })
+        case KADENA_SIGNING_METHODS.KADENA_GET_ACCOUNTS:
+        case KADENA_SIGNING_METHODS.KADENA_SIGN:
+        case KADENA_SIGNING_METHODS.KADENA_QUICKSIGN:
+          return ModalStore.open('SessionSignKadenaModal', { requestEvent, requestSession })
         default:
           return ModalStore.open('SessionUnsuportedMethodModal', { requestEvent, requestSession })
       }
