@@ -14,6 +14,7 @@ Then create a `.env.local` file with:
 ```
 NEXT_PUBLIC_PROJECT_ID=...
 NEXT_PUBLIC_RELAY_URL=wss://relay.walletconnect.com
+NEXT_PUBLIC_ZERODEV_PROJECT_ID=...
 ```
 
 Make sure to set `NEXT_PUBLIC_PROJECT_ID` to your own WalletConnect project ID.
