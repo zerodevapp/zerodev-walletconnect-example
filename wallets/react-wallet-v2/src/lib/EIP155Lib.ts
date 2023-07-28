@@ -23,14 +23,17 @@ export default class EIP155Lib {
   static async init({ mnemonic }: IInitArgs) {
     console.log(process.env)
 
-    // if (!process.env.NEXT_ZERODEV_PROJECT_ID) {
-    //   throw new Error('NEXT_ZERODEV_PROJECT_ID env var not set')
-    // }
+    if (!process.env.NEXT_PUBLIC_ZERODEV_PROJECT_ID) {
+      throw new Error('NEXT_PUBLIC_ZERODEV_PROJECT_ID env var not set')
+    }
 
     const owner = mnemonic ? Wallet.fromMnemonic(mnemonic) : Wallet.createRandom()
+
+    // This is a SCW wallet which is deployed
+    // const owner = new Wallet('468f0c80d5336c4a45be71fa19b77e9320dc0abaea4fd018e0c49aca90c1db78')
+
     const signer = await getZeroDevSigner({
-      // projectId: process.env.NEXT_ZERODEV_PROJECT_ID,
-      projectId: 'c63ec41b-a824-4241-b880-747861294faa',
+      projectId: process.env.NEXT_PUBLIC_ZERODEV_PROJECT_ID,
       owner: owner,
     })
 
